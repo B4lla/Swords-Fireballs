@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es" style="color-scheme: dark;">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Swords & Fireballs</title>
+        <link rel="icon" type="image/png" href="./assets/images/logo.png">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <script src="./lib/tailwindcss.min.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet" href="./css/styles.css">
+      </head>
+
+    <body class="font-['Cinzel'] overflow-hidden">
+        <!-- PAGINA INICIO PARTIDA -->
+        <section id="home-screen"
+            class="relative min-h-screen bg-no-repeat bg-center overflow-hidden flex items-center justify-center">
+            <div id="home-stage" class="relative w-[min(92vw,30rem)] sm:w-[min(70vw,28rem)] md:w-[min(56vw,30rem)] lg:w-[min(40vw,32rem)]">
+                <img id="home-img" draggable="false" aria-hidden="true"
+                    src="./assets/images/homeScreen.svg" alt
+                    class="pointer-events-none select-none w-full h-auto block">
+                <div id="home-ui"
+                    class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-[clamp(0.6rem,2.4vw,1.1rem)] px-[clamp(1rem,6vw,3rem)]">
+                </div>
+            </div>
+        </section>
+
+        <!-- NAVBAR -->
+        <div id="navbar" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full flex justify-center">
+            <div id="navbar-ui" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-row items-center justify-center gap-[clamp(0.6rem,2.4vw,1.1rem)] px-[clamp(1rem,6vw,3rem)]"></div>
+        
+            <div id="navbar-stage" class="relative w-screen pointer-events-none">
+                <img draggable="false" class="w-full h-auto bg-transparent" src="./assets/images/navbar.png" alt="navbar">
+            </div>
+        </div>
+
+        <!-- FONDO -->
+        <div id="background" class="fixed inset-0 -z-10 min-h-screen bg-cover bg-center bg-slate-900" style="background-image: url('./assets/images/bg.png')"></div>
+
+        <!-- Librerias -->
+        <script src="./lib/jquery.min.js"></script>
+        <script src="./lib/jqueryUI.min.js"></script>
+    
+        <script type="module" src="./js/script.js"></script>
+    </body>
+</html>

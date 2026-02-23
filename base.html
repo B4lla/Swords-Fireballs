@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- PAGINA PRINCIPAL -->
+    <section id="base-screen" class="fixed inset-0 pointer-events-none">
+        <!-- VER EJERCITO -->
+        <div id="panel-verEjercito" data-action="verEjercito" class="hidden pointer-events-auto fixed z-100 max-w-[min(92vw,40rem)]">
+            <img id="panel-verEjercito-img" src="./assets/images/panel.svg" draggable="false" alt="Panel Ejercito" class="block h-auto relative z-5 cursor-move">
+            <div class="absolute inset-0 z-10 flex flex-col items-center justify-start">
+                <h1 class="text-[#685948] text-xl font-bold pt-12">Tu Ejército</h1>
+                <div id="panel-verEjercito-content" class="mt-10 text-[#685948] w-full flex flex-col items-center gap-4 px-4 overflow-y-auto max-h-[70vh]">
+                </div>
+            </div>
+        </div>
+        <!-- RECLUTAR -->
+        <div id="panel-reclutar" data-action="reclutar" class="hidden pointer-events-auto fixed z-100 max-w-[min(92vw,40rem)]">
+            <img id="panel-reclutar-img" src="./assets/images/panel.svg" draggable="false" alt="Panel Reclutar" class="relative z-0 w-auto h-auto cursor-move">
+            <div class="absolute inset-0 z-10 flex flex-col items-center justify-start">
+                <h1 class="text-[#685948] text-xl font-bold pt-12">Reclutar</h1>
+                <div id="panel-reclutar-content" class="z-10 mt-10 text-[#685948] flex flex-col items-center gap-4 w-full px-4 overflow-y-auto max-h-[70vh]">
+                    <div id="tropas-reclutar" class="flex flex-col items-center gap-3 w-full">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- DESPEDIR -->
+        <div id="panel-despedir" data-action="despedir" class="hidden pointer-events-auto fixed z-100 max-w-[min(92vw,40rem)]">
+            <img id="panel-despedir-img" src="./assets/images/panel.svg" draggable="false" alt="Panel Despedir" class="relative z-0 w-auto h-auto cursor-move">
+            <div class="absolute inset-0 z-10 flex flex-col items-center justify-start">
+                <h1 class="text-[#685948] text-xl font-bold pt-12">Despedir</h1>
+                <div id="panel-despedir-content" class="z-10 mt-10 text-[#685948] flex flex-col items-center gap-4 w-full px-4 overflow-y-auto max-h-[70vh]">
+                    <div id="tropas-despedir" class="flex flex-col items-center gap-3 w-full">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- INFORMACION -->
+        <div id="panel-informacion" data-action="informacion" class="hidden pointer-events-auto fixed z-100 max-w-[min(92vw,40rem)]">
+            <img id="panel-informacion-img" src="./assets/images/panel.svg" draggable="false" alt="Panel Información" class="relative z-0 w-auto h-auto cursor-move">
+            <div class="absolute inset-0 z-10 flex flex-col items-center justify-start">
+                <h1 class="text-[#685948] text-xl font-bold pt-12">Información</h1>
+                <div id="panel-informacion-content" class="z-10 mt-10 text-[#685948] flex flex-col items-center gap-4 w-full px-4 overflow-y-auto max-h-[70vh]">
+                    
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

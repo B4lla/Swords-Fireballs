@@ -1,0 +1,57 @@
+:root {
+  color-scheme: dark;
+}
+
+body {
+  font-family: "Cinzel", serif;
+  overflow: hidden;
+}
+
+.scooped-corner {
+  --r: 12px; 
+
+  mask:
+    radial-gradient(var(--r) at 0 0, #0000 98%, #000 101%) top left,
+    radial-gradient(var(--r) at 100% 0, #0000 98%, #000 101%) top right,
+    radial-gradient(var(--r) at 0 100%, #0000 98%, #000 101%) bottom left,
+    radial-gradient(var(--r) at 100% 100%, #0000 98%, #000 101%) bottom right;
+  mask-size: 51% 51%;
+  mask-repeat: no-repeat;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+
+button:hover {
+  cursor: pointer;
+}
+
+button:active { transform: translateY(1px); }
+
+#batalla-log::-webkit-scrollbar {
+  width: 8px;
+}
+
+#batalla-log::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+#batalla-log::-webkit-scrollbar-thumb {
+  background: rgba(202, 138, 4, 0.6);
+  border-radius: 4px;
+}
+
+#batalla-log::-webkit-scrollbar-thumb:hover {
+  background: rgba(202, 138, 4, 0.8);
+}

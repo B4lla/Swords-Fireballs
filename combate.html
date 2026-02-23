@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- PAGINA DE COMBATE -->
+    <section id="battle-screen" class="fixed inset-0 pointer-events-none hidden">
+        <!-- VISTA DE COMBATE -->
+        <div id="battle-combat" class="hidden w-full h-full pointer-events-auto flex flex-col relative">
+            <!-- Esquinas superiores - Próximas tropas -->
+            <div id="tropa-proxima-jugador" class="absolute top-4 left-4 w-36 h-42 "></div>
+            <div id="tropa-proxima-enemigo" class="absolute top-4 right-4 w-36 h-42"></div>
+            <!-- Centro - Dividido en 2 zonas verticales -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] flex flex-col gap-4">
+                <!-- Zona superior (Jugador) -->
+                <div id="batalla-imagenes" class="flex-1 flex">
+                    <!-- IMAGEN JUGADOR -->
+                    <div id="batalla-imagenes-jugador" class="flex-1 flex items-center justify-center">
+                    </div>
+                    <!-- IMAGEN ENEMIGO -->
+                    <div id="batalla-imagenes-enemigo" class="flex-1 flex items-center justify-center">
+                    </div>
+                </div>
+                <div id="batalla-tarjetas" class="flex items-center mx-auto gap-16"></div>
+            </div>
+            
+            <!-- LOG BATALLA -->
+            <div id="batalla-log" class="absolute bottom-8 left-1/2 -translate-x-1/2 w-1/2 h-[12%] overflow-y-auto p-3 text-sm text-yellow-100 font-mono">
+            </div>
+            <!-- BOTON SIGUIENTE COMBATIR -->
+            <div id="boton-combatir-siguiente" class="absolute bottom-16 right-16 w-48 h-18">
+            </div>
+        </div>
+        <!-- VISTA DE VICTORIA -->
+        <div id="battle-victory" class="hidden w-full h-full pointer-events-auto flex items-center justify-center">
+            <div class="bg-black/80 border-4 border-green-500 rounded-lg p-8 text-center">
+                <h1 class="text-4xl font-bold text-green-500 mb-4">¡VICTORIA!</h1>
+                <div id="victory-content" class="text-white">
+                </div>
+            </div>
+        </div>
+        <!-- VISTA DE DERROTA -->
+        <div id="battle-defeat" class="hidden w-full h-full pointer-events-auto flex items-center justify-center">
+            <div class="bg-black/80 border-4 border-red-500 rounded-lg p-8 text-center">
+                <h1 class="text-4xl font-bold text-red-500 mb-4">¡DERROTA!</h1>
+                <div id="defeat-content" class="text-white">
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
