@@ -2,6 +2,7 @@
 import * as Utils from "./utils.js";
 import * as Juego from "./juego.js";
 import * as Funciones from "./funciones.js";
+import { crearMenu } from "./menuBuilder.js";
 
 // Variables de estado
 let state = {
@@ -10,28 +11,48 @@ let state = {
 };
 
 // Menu principal
-// Genera los botones dinamicamente de ambas vistas
+// Genera los botones dinamicamente de ambas vistas usando el creador genérico de menús.
 function menu() {
   if (state.menu === "menu") {
-    const panel = document.getElementById("home-ui");
-    panel.innerHTML += Utils.boton("btn-nuevaPartida", "Nueva Partida");
-    panel.innerHTML += Utils.boton("btn-cargarPartida", "Cargar Partida");
-    panel.innerHTML += `<div class="flex gap-2 w-[min(86vw,22rem)]">
-      ${Utils.botonPequeno("btn-facil", "Fácil", state.dificultad === 'facil')}
-      ${Utils.botonPequeno("btn-dificil", "Difícil", state.dificultad === 'dificil')}
-    </div>`;
-  } else if (state.menu === "base") {
-    const navbar = document.getElementById("navbar-ui");
-    navbar.innerHTML += Utils.boton("btn-verEjercito", "VER EJERCITO");
-    navbar.innerHTML += Utils.boton("btn-reclutar", "RECLUTAR");
-    navbar.innerHTML += Utils.boton("btn-combatir", "COMBATIR");
-    navbar.innerHTML += Utils.boton("btn-despedir", "DESPEDIR");
-    navbar.innerHTML += Utils.boton("btn-informacion", "INFORMACION");
+    document.getElementById("home-stage")?.classList.remove("hidden");
+    document.getElementById("navbar")?.classList.add("hidden");
+    document.getElementById("navbar-ui")?.replaceChildren();
 
+    crearMenu({
+      menuId: "menu-principal",
+      contenedorId: "home-ui",
+      items: [
+        { html: Utils.boton("btn-nuevaPartida", "Nueva Partida") },
+        { html: Utils.boton("btn-cargarPartida", "Cargar Partida") },
+        {
+          html: `<div id="dificultad-botones" class="flex gap-2 w-[min(86vw,22rem)]">
+            ${Utils.botonPequeno("btn-facil", "Fácil", state.dificultad === "facil")}
+            ${Utils.botonPequeno("btn-dificil", "Difícil", state.dificultad === "dificil")}
+          </div>`
+        }
+      ],
+      renderContenidoItem: item => item.html,
+      usarBaseItem: false
+    });
+  } else if (state.menu === "base") {
+    document.getElementById("navbar")?.classList.remove("hidden");
+
+    crearMenu({
+      menuId: "navbar-base",
+      contenedorId: "navbar-ui",
+      items: [
+        { html: Utils.boton("btn-verEjercito", "VER EJERCITO") },
+        { html: Utils.boton("btn-reclutar", "RECLUTAR") },
+        { html: Utils.boton("btn-combatir", "COMBATIR") },
+        { html: Utils.boton("btn-despedir", "DESPEDIR") },
+        { html: Utils.boton("btn-informacion", "INFORMACION") }
+      ],
+      renderContenidoItem: item => item.html,
+      usarBaseItem: false
+    });
 
     const panelMenu = document.getElementById("home-stage");
     panelMenu.classList.add("hidden");
-  } else if (state.menu === "fight") {
   }
 }
 
@@ -111,6 +132,9 @@ document.addEventListener("click", (e) => {
     case "btn-atacar":
       Funciones.siguienteCombate();
       break;
+    case "item-menu":
+      // Los items internos los gestiona crearMenu con delegación dentro de su contenedor.
+      break;
     case "btn-volver-base":
       document.getElementById("battle-screen").classList.add("hidden");
       document.getElementById("battle-combat").classList.add("hidden");
@@ -120,6 +144,7 @@ document.addEventListener("click", (e) => {
       document.getElementById("background").style.backgroundImage = "url('./assets/images/bg.png')";
       Juego.Juego.estado = "base";
       state.menu = "base";
+      menu();
       break;
     case "btn-menu-principal":
       state.menu = "menu";
@@ -142,7 +167,7 @@ document.addEventListener("click", (e) => {
 
 // Funcion para alternar la dificultad del juego
 function actualizarBotonesDificultad() {
-  const container = document.querySelector('.flex.gap-2');
+  const container = document.getElementById('dificultad-botones');
   if (container) {
     container.innerHTML = `
       ${Utils.botonPequeno("btn-facil", "Fácil", state.dificultad === 'facil')}

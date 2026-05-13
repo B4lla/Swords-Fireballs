@@ -1,9 +1,11 @@
 // Modulos necesarios
 import * as Juego from "./juego.js";
 import * as Utils from "./utils.js";
+import { crearMenu } from "./menuBuilder.js";
 
 // Variable para controlar el z-index de los paneles
 let panelZindex = 100;
+const CANTIDAD_ITEMS_TIENDA = 3; // Cambia este número para renderizar X items en la tienda.
 
 
 
@@ -53,45 +55,43 @@ export function cerrarTodosPaneles() {
 
 // Función para actualizar el contenido del panel Ver Ejército
 function actualizarContenidoVerEjercito() {
-  let idEjercito = 0;
-  const contenido = document.getElementById("panel-verEjercito-content");
-  contenido.innerHTML = "";
-  
-  // Agregar botón de recuperar todas las tropas
-  const tropasParaRecuperar = Juego.Juego.jugador.ejercito.filter(tropa => tropa.salud <= 0).length > 0;
+  const items = [];
+
+  const tropasParaRecuperar = Juego.Juego.jugador.ejercito.some(tropa => tropa.salud <= 0);
   if (tropasParaRecuperar) {
-    const botonRecuperarTodas = `
-      <button id="btn-recuperar-todas" class="relative z-10 group outline-none cursor-pointer transition-transform active:scale-95 filter drop-shadow-[0_4px_3px_rgba(0,0,0,0.5)] w-full max-w-[22rem] min-w-[200px]">
-          <div class="scooped-corner bg-[#1a1410] p-[2px] w-full h-[clamp(56px,10vw,76px)]">
-              <div class="scooped-corner bg-[#D2B48C] w-full h-full p-[clamp(2px,0.8vw,4px)]">
-                  <div class="scooped-corner bg-[#756452] w-full h-full p-[clamp(1px,0.5vw,2px)]">
-                      <div class="scooped-corner w-full h-full flex items-center justify-center bg-[radial-gradient(ellipse_at_center,_#E4CCA2_20%,_#D2B48C_100%)] py-[clamp(6px,1.8vw,12px)]">
-                          <span class="text-[#3e3226] font-['Cinzel'] text-[clamp(0.95rem,2.6vw,1.6rem)] font-medium tracking-wide uppercase pt-[clamp(1px,0.4vw,3px)] select-none">
-                              Recuperar tropas
-                          </span>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </button>
-    `;
-    contenido.innerHTML += botonRecuperarTodas;
-  }
-  
-  // Agregar las tropas
-  Juego.Juego.jugador.ejercito.forEach((element) => {
-    contenido.innerHTML += Utils.tropaEjercito(element, idEjercito++);
-  });
-  
-  // Agregar listener al botón de recuperar todas
-  const btnRecuperarTodas = document.getElementById("btn-recuperar-todas");
-  if (btnRecuperarTodas) {
-    btnRecuperarTodas.addEventListener("click", (e) => {
-      e.stopPropagation();
-      recuperarTodasLasTropas();
-      actualizarContenidoVerEjercito(); // Recarga solo el contenido
+    items.push({
+      tipo: "accion",
+      accion: "recuperar-todas",
+      texto: "Recuperar tropas"
     });
   }
+
+  Juego.Juego.jugador.ejercito.forEach((tropa, index) => {
+    items.push({
+      tipo: "tropa",
+      tropa,
+      index
+    });
+  });
+
+  crearMenu({
+    menuId: "ver-ejercito",
+    contenedorId: "panel-verEjercito-content",
+    items,
+    renderContenidoItem: item => {
+      if (item.tipo === "accion") {
+        return Utils.boton("btn-recuperar-todas", item.texto);
+      }
+
+      return Utils.contenidoTropaEjercito(item.tropa, item.index);
+    },
+    onItemClick: ({ item }) => {
+      if (item.accion === "recuperar-todas") {
+        recuperarTodasLasTropas();
+        actualizarContenidoVerEjercito();
+      }
+    }
+  });
 }
 
 // Funcion para ver el ejercito
@@ -121,89 +121,68 @@ export function verEjercito() {
 
 
 //////////////
-// CARGA ASINCRONA
-//////////////
-
-// Funcion para simular la carga de tropas
-async function cargarTropaAsincrona(tropa, index) {
-  // Tiempo aleatorio entre 2 y 5 para cada tropa
-  const tiempoEspera = Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000;
-  
-  // Resuelve la promesa tras el tiempo
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const ejercitoLleno = Juego.Juego.jugador.ejercito.length >= 5;
-      const loader = document.getElementById(`loader-tropa-${index}`);
-      
-      if (loader) {
-        // Reemplaza el loader por la tropa reclutable al terminar de cargar
-        loader.outerHTML = Utils.tropaReclutable(tropa, index, Juego.Juego.jugador.oro, ejercitoLleno);
-        // Agregar evento de compra
-        const tropaElement = document.getElementById(`btn-tropa-compra-${index}`);
-        if (tropaElement) {
-          // Listener ademas de la logica para saber cual se recluta y si puede
-          tropaElement.addEventListener("click", () => {
-            if (Juego.Juego.jugador.ejercito.length >= 5) {
-              Utils.notificacion("Compra", `No puedes reclutar a ${tropa.nombre} porque tu ejercito ya tiene 5 tropas.`);
-            } else if (Juego.Juego.jugador.oro < tropa.costo) {
-              Utils.notificacion("Compra", `No tienes suficiente oro para reclutar a ${tropa.nombre}.`);
-            } else {
-              Utils.notificacion("Compra", `Has reclutado a ${tropa.nombre}.`);
-              Juego.reclutarTropa(Juego.Juego.tropasTienda[index]);
-              Juego.Juego.jugador.oro -= tropa.costo;
-              actualizarInformacion(); // Actualiza el panel de informacion
-              generarTropasReclutar(); // Genera una nueva tienda
-              
-              // Actualizar panel Ver Ejército si está abierto (sin cerrarlo)
-              const panelVerEjercito = document.getElementById("panel-verEjercito");
-              if (panelVerEjercito && $(panelVerEjercito).is(":visible")) {
-                actualizarContenidoVerEjercito();
-              }
-            }
-          });
-        }
-      }
-      // Resolucion de promesa
-      resolve(tropa);
-    }, tiempoEspera);
-  });
-}
-
-//////////////
 // FUNCIONES RECLUTAR
 //////////////
 
-// Genera las tarjetas de las tropas
-async function generarTropasReclutar() {
-  const tropasContainer = document.getElementById("tropas-reclutar");
-  tropasContainer.innerHTML = "";
-  const tropas = Juego.generarTienda();
+// Genera las tarjetas de la tienda usando el creador genérico de menús.
+// Aquí puedes pasar X items y cualquier HTML para cada item.
+async function generarTropasReclutar(cantidad = CANTIDAD_ITEMS_TIENDA) {
+  const tropas = Juego.generarTienda(cantidad);
 
-  if (tropas) {
-    Juego.Juego.jugador.intentosContratar--;
-    // Mostrar loaders asincronia
-    tropas.forEach((tropa, index) => {
-      tropasContainer.innerHTML += `
-        <div id="loader-tropa-${index}" class="bg-[#D2B48C] border-4 border-[#775732] rounded-lg p-6 w-[min(95vw,28rem)] text-[#2C2318] flex items-center justify-center min-h-[120px]">
-          <div class="flex flex-col items-center gap-3">
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-[#775732] border-t-[#CB9039]"></div>
-            <p class="text-sm font-semibold">Cargando...</p>
-          </div>
-        </div>
-      `;
+  if (!tropas || tropas.length === 0) return;
+
+  Juego.Juego.jugador.intentosContratar--;
+
+  try {
+    await crearMenu({
+      menuId: "tienda-reclutar",
+      contenedorId: "tropas-reclutar",
+      items: tropas,
+      asincrono: true,
+      minDelay: 2000,
+      maxDelay: 5000,
+      renderContenidoItem: (tropa, index) => {
+        const ejercitoLleno = Juego.Juego.jugador.ejercito.length >= 5;
+        return Utils.contenidoTropaReclutable(tropa, index, Juego.Juego.jugador.oro, ejercitoLleno);
+      },
+      onItemClick: ({ item: tropa, index, event }) => {
+        const botonComprar = event.target.closest('[data-item-action="comprar"]');
+        if (!botonComprar) return;
+
+        comprarTropaTienda(index);
+      }
     });
+  } catch (error) {
+    console.error(`Error al cargar las tropas:`, error);
+    Utils.notificacion("Error", `Hubo un problema cargando las tropas.`);
+  }
+}
 
-    // Cargar las 3 tropas a la vez con Promise.all()
-    try {
-      await Promise.all([
-        cargarTropaAsincrona(tropas[0], 0),
-        cargarTropaAsincrona(tropas[1], 1),
-        cargarTropaAsincrona(tropas[2], 2)
-      ]);
-    } catch (error) {
-      console.error(`Error al cargar las tropas:`, error);
-      Utils.notificacion("Error", `Hubo un problema cargando las tropas.`);
-    }
+export function comprarTropaTienda(index) {
+  const tropa = Juego.Juego.tropasTienda[index];
+
+  if (!tropa) return;
+
+  if (Juego.Juego.jugador.ejercito.length >= 5) {
+    Utils.notificacion("Compra", `No puedes reclutar a ${tropa.nombre} porque tu ejercito ya tiene 5 tropas.`);
+    return;
+  }
+
+  if (Juego.Juego.jugador.oro < tropa.costo) {
+    Utils.notificacion("Compra", `No tienes suficiente oro para reclutar a ${tropa.nombre}.`);
+    return;
+  }
+
+  Utils.notificacion("Compra", `Has reclutado a ${tropa.nombre}.`);
+  Juego.reclutarTropa(tropa);
+  Juego.Juego.jugador.oro -= tropa.costo;
+
+  actualizarInformacion();
+  generarTropasReclutar();
+
+  const panelVerEjercito = document.getElementById("panel-verEjercito");
+  if (panelVerEjercito && $(panelVerEjercito).is(":visible")) {
+    actualizarContenidoVerEjercito();
   }
 }
 
@@ -251,7 +230,6 @@ export function reclutar() {
 export function despedir() {
   const panelDespedir = document.getElementById("panel-despedir");
 
-  // Comprueba si hay tropas para despedir
   if (Juego.Juego.jugador.ejercito.length === 0) {
     Utils.notificacion("Error", "No tienes tropas para despedir.");
     return;
@@ -262,30 +240,18 @@ export function despedir() {
     return;
   }
 
-  // Obtengo el contenido del panel para limpiarlo y despues agregar todas mis tropas
-  const despedirContent = document.getElementById("panel-despedir-content");
-  despedirContent.innerHTML = "";
-  Juego.Juego.jugador.ejercito.forEach((tropa, index) => {
-    despedirContent.innerHTML += Utils.tropaDespedir(tropa, index);
-  });
-
-  // Para cada boton de despedir creo un listener con el index para mas adelante saber cual ha pulsado
-  Juego.Juego.jugador.ejercito.forEach((tropa, index) => {
-    const tropaElement = document.getElementById(`btn-tropa-despedir-${index}`);
-    if (tropaElement) {
-      tropaElement.addEventListener("click", function() {
-        const tropaADespedir = Juego.Juego.jugador.ejercito[index];
-        const oroRecibido = tropaADespedir.reembolso;
-        Utils.notificacion("Despido", `Has despedido a ${tropaADespedir.nombre} y recibido ${oroRecibido} de oro.`);
-        Juego.Juego.jugador.oro += oroRecibido;
-        Juego.Juego.jugador.ejercito.splice(index, 1);
-        actualizarInformacion();
-        despedir();
-      });
+  crearMenu({
+    menuId: "despedir",
+    contenedorId: "panel-despedir-content",
+    items: Juego.Juego.jugador.ejercito,
+    renderContenidoItem: (tropa, index) => Utils.contenidoTropaDespedir(tropa, index),
+    onItemClick: ({ index, event }) => {
+      const botonDespedir = event.target.closest('[data-item-action="despedir"]');
+      if (!botonDespedir) return;
+      despedirTropaPorIndex(index);
     }
   });
 
-  // JQueryUI para poder arrastrarlo
   if (!$(panelDespedir).hasClass("ui-draggable")) {
     setTimeout(() => {
       $(panelDespedir).draggable({
@@ -296,6 +262,34 @@ export function despedir() {
   }
 
   abrirPanel("panel-despedir");
+}
+
+function despedirTropaPorIndex(index) {
+  const tropaADespedir = Juego.Juego.jugador.ejercito[index];
+  if (!tropaADespedir) return;
+
+  const oroRecibido = tropaADespedir.reembolso;
+  Utils.notificacion("Despido", `Has despedido a ${tropaADespedir.nombre} y recibido ${oroRecibido} de oro.`);
+  Juego.Juego.jugador.oro += oroRecibido;
+  Juego.Juego.jugador.ejercito.splice(index, 1);
+  actualizarInformacion();
+
+  if (Juego.Juego.jugador.ejercito.length === 0) {
+    abrirPanel("panel-despedir");
+    return;
+  }
+
+  crearMenu({
+    menuId: "despedir",
+    contenedorId: "panel-despedir-content",
+    items: Juego.Juego.jugador.ejercito,
+    renderContenidoItem: (tropa, index) => Utils.contenidoTropaDespedir(tropa, index),
+    onItemClick: ({ index, event }) => {
+      const boton = event.target.closest('[data-item-action="despedir"]');
+      if (!boton) return;
+      despedirTropaPorIndex(index);
+    }
+  });
 }
 
 
@@ -310,23 +304,23 @@ export function despedir() {
 
 // Actualiza la informacion cada vez que se solicita
 export function actualizarInformacion() {
-  const informacionContent = document.getElementById(
-    "panel-informacion-content",
-  );
-  if (informacionContent) {
-    informacionContent.innerHTML = `
-                <p>Oro: ${Juego.Juego.jugador.oro}</p>
-                <p>Victorias: ${Juego.Juego.jugador.victorias}</p>
-                <p>Derrotas: ${Juego.Juego.jugador.derrotas}</p>
-                <p>Tropas: ${Juego.Juego.jugador.ejercito.length}</p>
-                <p>Intentos de Contratar: ${Juego.Juego.jugador.intentosContratar}</p>
-                <p>Recuperación Disponible: ${Juego.Juego.jugador.recuperacionDisponible ? "Sí" : "No"}</p>
+  const items = [
+    { tipo: "texto", html: `<p>Oro: ${Juego.Juego.jugador.oro}</p>` },
+    { tipo: "texto", html: `<p>Victorias: ${Juego.Juego.jugador.victorias}</p>` },
+    { tipo: "texto", html: `<p>Derrotas: ${Juego.Juego.jugador.derrotas}</p>` },
+    { tipo: "texto", html: `<p>Tropas: ${Juego.Juego.jugador.ejercito.length}</p>` },
+    { tipo: "texto", html: `<p>Intentos de Contratar: ${Juego.Juego.jugador.intentosContratar}</p>` },
+    { tipo: "texto", html: `<p>Recuperación Disponible: ${Juego.Juego.jugador.recuperacionDisponible ? "Sí" : "No"}</p>` },
+    { tipo: "boton", html: Utils.boton("btn-guardar", "Guardar Partida") },
+    { tipo: "boton", html: Utils.boton("btn-salir", "Salir") }
+  ];
 
-            `;
-
-    informacionContent.innerHTML += Utils.boton("btn-guardar", "Guardar Partida");
-    informacionContent.innerHTML += Utils.boton("btn-salir", "Salir");
-  }
+  crearMenu({
+    menuId: "informacion",
+    contenedorId: "panel-informacion-content",
+    items,
+    renderContenidoItem: item => item.html
+  });
 }
 
 // Abre el panel de informacion
@@ -381,6 +375,11 @@ export function combatir() {
   
   // Genero las dos tarjetas de la tropa mia y del enemigo
   const batallaTarjetas = document.getElementById("batalla-tarjetas");
+  batallaTarjetas.innerHTML = "";
+  document.getElementById("batalla-imagenes-jugador").innerHTML = "";
+  document.getElementById("batalla-imagenes-enemigo").innerHTML = "";
+  document.getElementById("tropa-proxima-jugador").innerHTML = "";
+  document.getElementById("tropa-proxima-enemigo").innerHTML = "";
   const jugadorVivo = Juego.Juego.jugador.ejercito.find(t => t.salud > 0);
   const enemigoVivo = Juego.Juego.enemigos.find(e => e.salud > 0);
   // Agrego las tarjetas generadas al HTML
@@ -762,7 +761,11 @@ function finalizarCombate() {
 export function recuperarTropa(id) {
   const tropa = Juego.Juego.jugador.ejercito[id];
   if (tropa && tropa.salud <= 0) {
-    tropa.salud = Math.floor(tropa.saludMax * 0.7);
+    if (tropa.curarPorcentaje) {
+      tropa.curarPorcentaje(0.7);
+    } else {
+      tropa.salud = Math.floor(tropa.saludMax * 0.7);
+    }
     
     // Restablecer habilidades especiales
     if (tropa.habilidadEspecial && tropa.habilidadEspecial.usosMax) {
@@ -794,8 +797,8 @@ export function salirSinGuardar() {
   cerrarTodosPaneles();
   
   // Limpiar interfaz
-  document.getElementById("navbar-ui").innerHTML = "";
-  document.getElementById("home-ui").innerHTML = "";
+  document.getElementById("navbar-ui").replaceChildren();
+  document.getElementById("home-ui").replaceChildren();
   document.getElementById("navbar").classList.add("hidden");
   document.getElementById("base-screen").classList.add("hidden");
   document.getElementById("battle-screen").classList.add("hidden");
@@ -805,5 +808,5 @@ export function salirSinGuardar() {
   document.getElementById("background").style.backgroundImage = "url('./assets/images/bg.png')";
   
   // Regenerar menú
-  Juego.estado = 'menu';
+  Juego.Juego.estado = 'menu';
 }

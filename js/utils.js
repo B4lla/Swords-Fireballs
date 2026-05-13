@@ -7,6 +7,12 @@ export function normalizarNombre(nombre) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+export function porcentajeSalud(tropa) {
+  if (tropa?.getPorcentajeSalud) return tropa.getPorcentajeSalud();
+  if (!tropa?.saludMax || tropa.saludMax <= 0) return 0;
+  return Math.max(0, Math.min(100, (tropa.salud / tropa.saludMax) * 100));
+}
+
 // Obitene las cookies para cargar la partida guardada
 export function getCookies(nombre) {
   if (!document.cookie) return null;
@@ -114,12 +120,12 @@ export function notificacion(titulo, mensaje) {
   });
 }
 
-// TROPA TIENDA
-export function tropaReclutable(tropa, id, oroJugador, ejercitoLleno = false) {
+// CONTENIDO TROPA TIENDA
+// Este HTML es solo el interior del rectángulo. El rectángulo base lo crea menuBuilder.
+export function contenidoTropaReclutable(tropa, id, oroJugador, ejercitoLleno = false) {
   const puedeComprar = oroJugador >= tropa.costo && !ejercitoLleno;
   let estiloBoton, mensajeBoton;
   
-  // Mensajes y estilos en funcion de si puede comprar o no
   if (ejercitoLleno) {
     estiloBoton = "text-sm font-semibold text-gray-400 bg-gradient-to-t from-gray-500 to-gray-600 px-3 py-2 border-3 border-gray-500 opacity-50 cursor-not-allowed";
     mensajeBoton = "Ejército lleno";
@@ -132,75 +138,79 @@ export function tropaReclutable(tropa, id, oroJugador, ejercitoLleno = false) {
   }
   
   return `
-    <div id="tropa-compra-${id}" class="bg-[#D2B48C] border-4 border-[#775732] rounded-lg p-3 w-[min(95vw,28rem)] text-[#2C2318]" data-tropa="${tropa.nombre}">
-      <div class="flex items-start gap-3">
-        <img src="./assets/images/troops/${normalizarNombre(tropa.nombre)}.png" alt="${tropa.nombre}" class="w-16 h-16 rounded-full">
-        <div class="flex flex-col flex-1 min-w-0">
-          <h3 class="text-base font-bold">${tropa.nombre}</h3>
-          <div class="flex flex-col gap-2 mt-2">
-            <div class="w-full">
-              <div class="flex justify-between text-[0.65rem] mb-1">
-                <span class="font-semibold">HP</span>
-                <span class="font-semibold">${tropa.salud}</span>
-              </div>
-              <div class="w-full bg-[#483B30] border-4 border-[#483B30] h-4">
-                <div class="bg-red-500 h-2" style="width: ${tropa.salud}%"></div>
-              </div>
+    <div id="tropa-compra-${id}" class="flex items-start gap-3 w-full" data-tropa="${tropa.nombre}">
+      <img src="./assets/images/troops/${normalizarNombre(tropa.nombre)}.png" alt="${tropa.nombre}" class="w-16 h-16 rounded-full">
+      <div class="flex flex-col flex-1 min-w-0">
+        <h3 class="text-base font-bold">${tropa.nombre}</h3>
+        <div class="flex flex-col gap-2 mt-2">
+          <div class="w-full">
+            <div class="flex justify-between text-[0.65rem] mb-1">
+              <span class="font-semibold">HP</span>
+              <span class="font-semibold">${tropa.salud}</span>
             </div>
-            <div class="w-full">
-              <div class="flex justify-between text-[0.65rem] mb-1">
-                <span class="font-semibold">ATK</span>
-                <span class="font-semibold">${tropa.fuerza}</span>
-              </div>
-              <div class="w-full bg-[#483B30] border-4 border-[#483B30] h-4">
-                <div class="bg-green-500 h-2" style="width: ${tropa.fuerza}%"></div>
-              </div>
+            <div class="w-full bg-[#483B30] border-4 border-[#483B30] h-4">
+              <div class="bg-red-500 h-2" style="width: ${porcentajeSalud(tropa)}%"></div>
+            </div>
+          </div>
+          <div class="w-full">
+            <div class="flex justify-between text-[0.65rem] mb-1">
+              <span class="font-semibold">ATK</span>
+              <span class="font-semibold">${tropa.fuerza}</span>
+            </div>
+            <div class="w-full bg-[#483B30] border-4 border-[#483B30] h-4">
+              <div class="bg-green-500 h-2" style="width: ${tropa.fuerza}%"></div>
             </div>
           </div>
         </div>
-        <button id="btn-tropa-compra-${id}" class="ml-auto text-right items-center gap-2 mt-8" ${!puedeComprar ? 'disabled' : ''}>
-          <div class="${estiloBoton}">
-            ${mensajeBoton}
-          </div>
-        </button>
       </div>
+      <button id="btn-tropa-compra-${id}" data-item-action="comprar" class="ml-auto text-right items-center gap-2 mt-8" ${!puedeComprar ? 'disabled' : ''}>
+        <div class="${estiloBoton}">
+          ${mensajeBoton}
+        </div>
+      </button>
     </div>
   `;
 }
 
+// Compatibilidad: si alguna parte antigua llama a tropaReclutable, sigue funcionando.
+export function tropaReclutable(tropa, id, oroJugador, ejercitoLleno = false) {
+  return `
+    <div class="bg-[#D2B48C] border-4 border-[#775732] rounded-lg p-3 w-[min(95vw,28rem)] text-[#2C2318]">
+      ${contenidoTropaReclutable(tropa, id, oroJugador, ejercitoLleno)}
+    </div>
+  `;
+}
 
-// TROPA EJERCITO
-export function tropaEjercito(tropa, id) {
+// CONTENIDO TROPA EJERCITO
+export function contenidoTropaEjercito(tropa, id) {
   const estadoClass = tropa.salud <= 0 ? 'opacity-50 grayscale' : '';
   const etiquetaEstado = tropa.salud <= 0 ? '<span class="text-red-600 font-bold text-xs">MUERTO</span>' : '';
   
   return `
-    <div id="tropa-jugador-${id}" class="bg-[#D2B48C] border-4 border-[#775732] rounded-lg p-3 w-[min(95vw,28rem)] text-[#2C2318] ${estadoClass} pointer-events-none select-none" data-tropa="${tropa.nombre}">
-      <div class="flex items-start gap-3">
-        <img src="./assets/images/troops/${normalizarNombre(tropa.nombre)}.png" alt="${tropa.nombre}" class="w-16 h-16 rounded-full">
-        <div class="flex flex-col flex-1 min-w-0">
-          <div class="flex items-center gap-2">
-            <h3 class="text-base font-bold">${tropa.nombre}</h3>
-            ${etiquetaEstado}
-          </div>
-          <div class="flex flex-col gap-2 mt-2">
-            <div class="w-full">
-              <div class="flex justify-between text-[0.65rem] mb-1">
-                <span class="font-semibold">HP</span>
-                <span class="font-semibold">${tropa.salud} / ${tropa.saludMax}</span>
-              </div>
-              <div class="w-full bg-[#483B30] border-4 border-[#483B30] h-4">
-                <div class="bg-red-500 h-2" style="width: ${(tropa.salud / tropa.saludMax * 100)}%"></div>
-              </div>
+    <div id="tropa-jugador-${id}" class="flex items-start gap-3 w-full ${estadoClass} pointer-events-none select-none" data-tropa="${tropa.nombre}">
+      <img src="./assets/images/troops/${normalizarNombre(tropa.nombre)}.png" alt="${tropa.nombre}" class="w-16 h-16 rounded-full">
+      <div class="flex flex-col flex-1 min-w-0">
+        <div class="flex items-center gap-2">
+          <h3 class="text-base font-bold">${tropa.nombre}</h3>
+          ${etiquetaEstado}
+        </div>
+        <div class="flex flex-col gap-2 mt-2">
+          <div class="w-full">
+            <div class="flex justify-between text-[0.65rem] mb-1">
+              <span class="font-semibold">HP</span>
+              <span class="font-semibold">${tropa.salud} / ${tropa.saludMax}</span>
             </div>
-            <div class="w-full">
-              <div class="flex justify-between text-[0.65rem] mb-1">
-                <span class="font-semibold">ATK</span>
-                <span class="font-semibold">${tropa.fuerza}</span>
-              </div>
-              <div class="w-full bg-[#483B30] border-4 border-[#483B30] h-4">
-                <div class="bg-green-500 h-2" style="width: ${(tropa.fuerza / 100 * 100)}%"></div>
-              </div>
+            <div class="w-full bg-[#483B30] border-4 border-[#483B30] h-4">
+              <div class="bg-red-500 h-2" style="width: ${porcentajeSalud(tropa)}%"></div>
+            </div>
+          </div>
+          <div class="w-full">
+            <div class="flex justify-between text-[0.65rem] mb-1">
+              <span class="font-semibold">ATK</span>
+              <span class="font-semibold">${tropa.fuerza}</span>
+            </div>
+            <div class="w-full bg-[#483B30] border-4 border-[#483B30] h-4">
+              <div class="bg-green-500 h-2" style="width: ${(tropa.fuerza / 100 * 100)}%"></div>
             </div>
           </div>
         </div>
@@ -209,41 +219,55 @@ export function tropaEjercito(tropa, id) {
   `; 
 }
 
-// TROPA DESPEDIR
-export function tropaDespedir(tropa, id) {
+export function tropaEjercito(tropa, id) {
   return `
-    <div id="tropa-despedir-${id}" class="bg-[#D2B48C] border-4 border-[#775732] rounded-lg p-3 w-[min(95vw,28rem)] text-[#2C2318]" data-tropa="${tropa.nombre}">
-      <div class="flex items-start gap-3">
-        <img src="./assets/images/troops/${normalizarNombre(tropa.nombre)}.png" alt="${tropa.nombre}" class="w-16 h-16 rounded-full">
-        <div class="flex flex-col flex-1 min-w-0">
-          <h3 class="text-base font-bold">${tropa.nombre}</h3>
-          <div class="flex flex-col gap-2 mt-2">
-            <div class="w-full">
-              <div class="flex justify-between text-[0.65rem] mb-1">
-                <span class="font-semibold">HP</span>
-                <span class="font-semibold">${tropa.salud}</span>
-              </div>
-              <div class="w-full bg-[#483B30] border-4 border-[#483B30] h-4">
-                <div class="bg-red-500 h-2" style="width: ${tropa.salud}%"></div>
-              </div>
+    <div class="bg-[#D2B48C] border-4 border-[#775732] rounded-lg p-3 w-[min(95vw,28rem)] text-[#2C2318]">
+      ${contenidoTropaEjercito(tropa, id)}
+    </div>
+  `;
+}
+
+// CONTENIDO TROPA DESPEDIR
+export function contenidoTropaDespedir(tropa, id) {
+  return `
+    <div id="tropa-despedir-${id}" class="flex items-start gap-3 w-full" data-tropa="${tropa.nombre}">
+      <img src="./assets/images/troops/${normalizarNombre(tropa.nombre)}.png" alt="${tropa.nombre}" class="w-16 h-16 rounded-full">
+      <div class="flex flex-col flex-1 min-w-0">
+        <h3 class="text-base font-bold">${tropa.nombre}</h3>
+        <div class="flex flex-col gap-2 mt-2">
+          <div class="w-full">
+            <div class="flex justify-between text-[0.65rem] mb-1">
+              <span class="font-semibold">HP</span>
+              <span class="font-semibold">${tropa.salud}</span>
             </div>
-            <div class="w-full">
-              <div class="flex justify-between text-[0.65rem] mb-1">
-                <span class="font-semibold">ATK</span>
-                <span class="font-semibold">${tropa.fuerza}</span>
-              </div>
-              <div class="w-full bg-[#483B30] border-4 border-[#483B30] h-4">
-                <div class="bg-green-500 h-2" style="width: ${tropa.fuerza}%"></div>
-              </div>
+            <div class="w-full bg-[#483B30] border-4 border-[#483B30] h-4">
+              <div class="bg-red-500 h-2" style="width: ${porcentajeSalud(tropa)}%"></div>
+            </div>
+          </div>
+          <div class="w-full">
+            <div class="flex justify-between text-[0.65rem] mb-1">
+              <span class="font-semibold">ATK</span>
+              <span class="font-semibold">${tropa.fuerza}</span>
+            </div>
+            <div class="w-full bg-[#483B30] border-4 border-[#483B30] h-4">
+              <div class="bg-green-500 h-2" style="width: ${tropa.fuerza}%"></div>
             </div>
           </div>
         </div>
-        <button id="btn-tropa-despedir-${id}" class="ml-auto text-right items-center gap-2 mt-8">
-          <div class="text-sm font-semibold text-[#F5E6BE] bg-gradient-to-t from-[#CB9039] to-[#875822] px-3 py-2 border-3 border-[#D99F42]">
-            <i class="fas fa-minus mr-1"></i>
-          </div>
-        </button>
       </div>
+      <button id="btn-tropa-despedir-${id}" data-item-action="despedir" class="ml-auto text-right items-center gap-2 mt-8">
+        <div class="text-sm font-semibold text-[#F5E6BE] bg-gradient-to-t from-[#CB9039] to-[#875822] px-3 py-2 border-3 border-[#D99F42]">
+          <i class="fas fa-minus mr-1"></i>
+        </div>
+      </button>
+    </div>
+  `;
+}
+
+export function tropaDespedir(tropa, id) {
+  return `
+    <div class="bg-[#D2B48C] border-4 border-[#775732] rounded-lg p-3 w-[min(95vw,28rem)] text-[#2C2318]">
+      ${contenidoTropaDespedir(tropa, id)}
     </div>
   `;
 }
@@ -314,7 +338,7 @@ export function tropaCombate(tropa, id) {
                 <span class="font-semibold">${tropa.salud}</span>
               </div>
               <div class="w-full bg-[#483B30] border-4 border-[#483B30] h-4">
-                <div class="bg-red-500 h-2" style="width: ${(tropa.salud / tropa.saludMax * 100)}%"></div>
+                <div class="bg-red-500 h-2" style="width: ${porcentajeSalud(tropa)}%"></div>
               </div>
             </div>
             <div class="w-full">

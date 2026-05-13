@@ -21,6 +21,33 @@ export let Juego = {
     turno: 0                            // 0 para jugador, 1 para enemigo
 }
 
+function rehidratarPersonaje(data) {
+    let personaje;
+
+    switch (data.nombre) {
+        case 'Guerrero':
+            personaje = new Guerrero();
+            break;
+        case 'Mago':
+            personaje = new Mago();
+            break;
+        case 'Ladrón':
+            personaje = new Ladron();
+            break;
+        default:
+            personaje = new Guerrero();
+    }
+
+    Object.assign(personaje, data);
+    return personaje;
+}
+
+function rehidratarPartida() {
+    Juego.jugador.ejercito = (Juego.jugador.ejercito || []).map(rehidratarPersonaje);
+    Juego.enemigos = (Juego.enemigos || []).map(rehidratarPersonaje);
+    Juego.tropasTienda = (Juego.tropasTienda || []).map(rehidratarPersonaje);
+}
+
 // Funcion para cargar partida
 export function cargarPartida() {
     // Comprueba si tiene una partida guardada
@@ -29,8 +56,8 @@ export function cargarPartida() {
     if (partidaGuardada) {
         // Si existe una partida la carga y cambia el estado
         Juego = JSON.parse(partidaGuardada);
-        
         Juego.estado = Juego.estado || 'base';
+        rehidratarPartida();
         return true;
         
     } else {
@@ -62,17 +89,16 @@ export function nuevaPartida(dificultad) {
 }
 
 // Funcion para generar la tienda aleatoria
-export function generarTienda() {
-    // Genera las tropas aleatorias con generarTropa del tipo generarUnidad
+export function generarTienda(cantidad = 3) {
+    // Genera X tropas aleatorias con generarTropa del tipo generarUnidad
     if (Juego.jugador.intentosContratar > 0) {
-        Juego.tropasTienda = [
-            generarTropa(generarUnidad()),
-            generarTropa(generarUnidad()),
+        Juego.tropasTienda = Array.from({ length: cantidad }, () =>
             generarTropa(generarUnidad())
-        ];
+        );
         return Juego.tropasTienda;
     } else {
         Utils.notificacion("Tienda", "No puedes contratar tropas en este momento. Intenta de nuevo después de tu próxima batalla.");
+        return [];
     }
 }
 
@@ -118,6 +144,7 @@ export function reclutarTropa(tropa) {
 
 // Funcion para generar enemigos aleatorios de entre 3 y 5
 export function generarEnemigo() {
+    Juego.enemigos = [];
     let cantidadEnemigos = Math.floor(Math.random() * (5-3+1)+3);
     cantidadEnemigos = Math.min(cantidadEnemigos, 5);
     for(let i = 0; i<=cantidadEnemigos-1; i++) {
